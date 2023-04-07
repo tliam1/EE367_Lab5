@@ -82,7 +82,7 @@ void switch_main(int switch_id){
        * Get packets from incoming links and translate to jobs
        * Put jobs in job queue
        */
-
+      //packet_recv_socket((struct packet *) malloc(sizeof(struct packet)));
       for (k = 0; k < node_port_num; k++) { /* Scan all ports */
          in_packet = (struct packet *) malloc(sizeof(struct packet));
          n = packet_recv(node_port[k], in_packet);
@@ -125,17 +125,18 @@ void switch_main(int switch_id){
          // the destination was known and therefore sent to
          // the specific host
          if(dst >= 0) {
-            printf("Dst Found! Sending from switch to host %d\n", dst);
+           // printf("Dst Found! Sending from switch to host %d\n", dst);
             packet_send(node_port[dst], new_job->packet);
          } 
          // the destination was unknown and therefore sent to all hosts 
          else {
-            printf("Dst Unknown! Sending from switch to all hosts\n");
+            printf("Dest Unknown\n");
             for(k = 0; k < node_port_num; k++) {
                if(new_job->in_port_index != k) {
                   packet_send(node_port[k], new_job->packet);
                }
             }
+      //      packet_send_socket(new_job->packet);
          }
 
          //if source is unknown, input it into the forwarding table and mark it as valid
@@ -144,8 +145,8 @@ void switch_main(int switch_id){
             forwarding_table[i][D] = new_job->packet->src;
             forwarding_table[i][P] = new_job->in_port_index;
 
-            printf("new FT entry: forwarding_table[%d]: Host = %d, port_on_switch = %d\n"
-                  ,i,new_job->packet->src,new_job->in_port_index);
+      //      printf("new FT entry: forwarding_table[%d]: Host = %d, port_on_switch = %d\n"
+        //          ,i,new_job->packet->src,new_job->in_port_index);
          }
 
          free(new_job->packet);
