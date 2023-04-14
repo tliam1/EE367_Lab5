@@ -25,6 +25,7 @@ struct net_port { /* port to communicate with another node */
 	int pipe_host_id;
 	int pipe_send_fd;
 	int pipe_recv_fd;
+	
 	struct net_port *next;
 };
 
@@ -44,5 +45,4 @@ struct packet { /* struct for a packet */
 #define PKT_PING_REPLY		1
 #define PKT_FILE_UPLOAD_START	2
 #define PKT_FILE_UPLOAD_END	3
-
-
+#define PKT_FILE_DOWNLOAD_SEND 4

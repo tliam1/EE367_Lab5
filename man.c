@@ -210,37 +210,29 @@ printf("Enter host id of destination:  ");
 scanf("%d", &host_id);
 printf("\n");
 
-
 n = sprintf(msg, "u %d %s", host_id, name);
-write(curr_host->send_fd, msg, n); 
+write(curr_host->send_fd, msg, n);
 usleep(TENMILLISEC);
-printf("Uploaded File\n");
 }
 
-int file_download(struct man_port_at_man *curr_host, struct man_port_at_man *list){
+int file_download(struct man_port_at_man *curr_host)
+{
    int n;
    int host_id;
    char name[NAME_LENGTH];
    char msg[NAME_LENGTH];
 
+
    printf("Enter file name to download: ");
    scanf("%s", name);
-   printf("Enter host id of source file:  ");
+   printf("Enter host id that has the file: ");
    scanf("%d", &host_id);
    printf("\n");
- 
-   /* Find the port of the host to download from */
-   struct man_port_at_man *p;
-   for (p=list; p!=NULL; p=p->next) {
-      if (p->host_id == host_id) {
-         break;
-      }
-   }
-   
-   
-   n = sprintf(msg, "u %d %s", curr_host->host_id, name);
-   write(p->send_fd, msg, n);
+
+   n = sprintf(msg, "d %d %s", host_id, name);
+   write(curr_host->send_fd, msg, n);
    usleep(TENMILLISEC);
+
 }
 
 
@@ -286,7 +278,7 @@ while(1) {
 			file_upload(curr_host);
 			break;
 		case 'd': /* Download a file from a host */
-         file_download(curr_host, host_list);
+			file_download(curr_host);
 			break;
 		case 'q':  /* Quit */
 			return;
@@ -295,5 +287,3 @@ while(1) {
 	}
 }   
 } 
-
-
