@@ -23,6 +23,11 @@
 #define PKT_PAYLOAD_MAX 100
 #define TENMILLISEC 10000   /* 10 millisecond sleep */
 
+
+struct DNS_Table {
+   char * domainName;
+};
+
 /* Types of packets */
 
 char oldFileName[MAX_FILE_NAME];
@@ -37,6 +42,11 @@ struct file_buf {
 	FILE *fd;
 };
 
+struct file_dat{
+
+   char heldFileName[MAX_FILE_NAME];
+   
+};
 
 /*
  * File buffer operations
@@ -215,17 +225,43 @@ return j_q->occ;
  *  Main 
  */
 
+struct DNS_Table Naming_Table[MAXSTORAGE];
+//DNS REGISTRATION
+void AssignToTable(int id, char * name){
+   if(Naming_Table[id].domainName == NULL){
+      Naming_Table[id].domainName = (char*) malloc(strlen(name) + 1); // allocate memory for the new name
+      strcpy(Naming_Table[id].domainName, name); // copy the name string to the new memory location
+      printf("Registered Name: %s at id %d\n\n", Naming_Table[id].domainName, id);
+   }
+}
+
+int RequestID(char * name){
+   printf("Requesting ID: %s\n", name);
+   for(int i = 0; i < MAXSTORAGE; i++){
+      if(Naming_Table[i].domainName != NULL)
+         printf("Entry[%d] is: %s\n", i, Naming_Table[i].domainName);
+      if(Naming_Table[i].domainName != NULL && strcmp(name, Naming_Table[i].domainName) == 0){
+         return i;
+      }
+   }
+   
+   //printf("%s\n\n", name);
+   return -1;
+}
+
+
+
 void host_main(int host_id)
 {
-
 /* State */
 char dir[MAX_DIR_NAME];
 int dir_valid = 0;
-
+struct file_dat dat;
 char man_msg[MAN_MSG_LENGTH];
 char man_reply_msg[MAN_MSG_LENGTH];
 char man_cmd;
 struct man_port_at_host *man_port;  // Port to the manager
+//struct DNS_Table Naming_Table[MAXSTORAGE];
 
 struct net_port *node_port_list;
 struct net_port **node_port;  // Array of pointers to node ports
@@ -312,7 +348,26 @@ while(1) {
 
 			case 'p': // Sending ping request
 				// Create new ping request packet
-				sscanf(man_msg, "%d", &dst);
+            sscanf(man_msg, "%d %s", &dst, name);
+            new_job = (struct host_job *)
+                  malloc(sizeof(struct host_job));
+            new_job->type = JOB_REQUEST_ID_SEND;
+            new_job->file_upload_dst = 100;
+            for (i=0; name[i] != '\0'; i++) {
+               new_job->domNameUp[i] = name[i];
+            }
+            new_job->domNameUp[i] = ' ';
+            new_job->domNameUp[i+1] = 'p';
+            //printf("Host: New_job->domNameUp: %s\n", new_job->domNameUp);
+            new_job->domNameUp[i+2] = '\0';
+            job_q_add(&job_q, new_job);
+
+
+				//sscanf(man_msg, "%d", &dst);
+
+            //printf("string literal of dst %s\n", (char)dst);
+/*            dst = requestedID;
+            printf("Requested ID is %d\n", dst);
 				new_packet = (struct packet *) 
 						malloc(sizeof(struct packet));	
 				new_packet->src = (char) host_id;
@@ -331,12 +386,29 @@ while(1) {
 				new_job2->type = JOB_PING_WAIT_FOR_REPLY;
 				new_job2->ping_timer = 10;
 				job_q_add(&job_q, new_job2);
-
+  */          
 				break;
 
 			case 'u': /* Upload a file to a host */
-				sscanf(man_msg, "%d %s", &dst, name);
-				new_job = (struct host_job *) 
+				sscanf(man_msg, "%d %s %s", &dst, dat.heldFileName, name);
+            new_job = (struct host_job *)
+                  malloc(sizeof(struct host_job));
+            new_job->type = JOB_REQUEST_ID_SEND;
+            new_job->file_upload_dst = 100;
+            for (i=0; name[i] != '\0'; i++) {
+               new_job->domNameUp[i] = name[i];
+            }
+            new_job->domNameUp[i] = ' ';
+            new_job->domNameUp[i+1] = 'u';
+            //printf("Host: New_job->domNameUp: %s\n", new_job->domNameUp);
+            new_job->domNameUp[i+2] = '\0';
+            job_q_add(&job_q, new_job);
+
+
+
+
+
+            /*new_job = (struct host_job *) 
 						malloc(sizeof(struct host_job));
 				new_job->type = JOB_FILE_UPLOAD_SEND;
 				new_job->file_upload_dst = dst;	
@@ -345,23 +417,78 @@ while(1) {
 				}
 				new_job->fname_upload[i] = '\0';
 				job_q_add(&job_q, new_job);
+            */
 					
 				break;
 
          case 'd': /* Dowload a file to a specified host */
-				printf("Download started\n");
-				sscanf(man_msg, "%d %s", &dst, name);
+//				printf("Download started\n");
+			   sscanf(man_msg, "%d %s %s", &dst, dat.heldFileName, name);
+            new_job = (struct host_job *)
+                  malloc(sizeof(struct host_job));
+            new_job->type = JOB_REQUEST_ID_SEND;
+            new_job->file_upload_dst = 100;
+            for (i=0; name[i] != '\0'; i++) {
+               new_job->domNameUp[i] = name[i];
+            }
+            new_job->domNameUp[i] = ' ';
+            new_job->domNameUp[i+1] = 'd';
+            //printf("Host: New_job->domNameUp: %s\n", new_job->domNameUp);
+            new_job->domNameUp[i+2] = '\0';
+            job_q_add(&job_q, new_job);
+
+
+
+
+
+
+
+
+            /*sscanf(man_msg, "%d %s", &dst, name);
 				new_job = (struct host_job *) 
 						malloc(sizeof(struct host_job));
-				new_job->type = JOB_FILE_DOWNLOAD_SEND;
+				new_job->type = JOB_FILE_UPLOAD_SEND;
 				new_job->file_download_dst = dst;	
 				for (i=0; name[i] != '\0'; i++) {
 					new_job->fname_download[i] = name[i];
 				}
 				new_job->fname_download[i] = '\0';
 				job_q_add(&job_q, new_job);
-					
+				*/	
 				break;
+         case 'a': 
+            //send alias to DNS node
+            //printf("SENDING ALIAS\n");
+            sscanf(man_msg, "%d %s", &dst, name);
+            new_job = (struct host_job *)
+                  malloc(sizeof(struct host_job));
+            new_job->type = JOB_REGISTER_NAME_SEND;
+            new_job->file_upload_dst = dst;
+            for (i=0; name[i] != '\0'; i++) {
+               new_job->domNameUp[i] = name[i];
+            }
+            new_job->domNameUp[i] = '\0';
+            job_q_add(&job_q, new_job);
+            break;
+         case 'r':
+            //printf("REQUEST STARTED\n");
+            sscanf(man_msg, "%d %s", &dst, name);
+            new_job = (struct host_job *)
+                  malloc(sizeof(struct host_job));
+            new_job->type = JOB_REQUEST_ID_SEND;
+            new_job->file_upload_dst = dst;
+            for (i=0; name[i] != '\0'; i++) {
+               new_job->domNameUp[i] = name[i];
+            }
+            new_job->domNameUp[i] = '\0';
+            job_q_add(&job_q, new_job);
+
+               //request name through request packet
+               //The DNS server will return a reply packet, which has an
+               //indicator if the physical ID exists, and 
+               //if it exists, the physical ID as well.
+               //
+            break;
 
 			default:
 			;
@@ -379,7 +506,8 @@ while(1) {
 
 		in_packet = (struct packet *) malloc(sizeof(struct packet));
 		n = packet_recv(node_port[k], in_packet);
-
+      //printf("Host: %d is checking packets from host: %d and got: %d\n", 
+      //host_id, k, n); 
 		if ((n >= 0) && ((int) in_packet->dst == host_id)) {
          //printf("new job!\n");
 			new_job = (struct host_job *) 
@@ -436,7 +564,24 @@ while(1) {
 						= JOB_FILE_DOWNLOAD_RECV;
 					job_q_add(&job_q, new_job);
 					break;
-
+            case (char) PKT_DNS_UPLOAD_END:
+               new_job->type
+                  = JOB_REGISTER_NAME_REC;
+      //         printf("DNS Recieved Packet\n");
+               job_q_add(&job_q, new_job);
+               break;
+            case (char) PKT_DNS_REQUEST_START:
+               new_job->type
+                  = JOB_REQUEST_ID_REC;
+      //         printf("DNS Recieved Packet\n");
+               job_q_add(&job_q, new_job);
+               break;
+            case (char) PKT_DNS_REQUEST_END:
+               new_job->type
+                  = JOB_REQUEST_ID_REC_END;
+               //printf("HOST Recieved Packet DNS REQUEST\n");
+               job_q_add(&job_q, new_job);
+               break;
 				default:
 					free(in_packet);
 					free(new_job);
@@ -528,13 +673,14 @@ while(1) {
 		case JOB_FILE_UPLOAD_SEND:
 
 			/* Open file */
-			if (dir_valid == 1) {
+//			if (dir_valid == 1) {
 				n = sprintf(name, "./%s/%s", 
 					dir, new_job->fname_upload);
 				name[n] = '\0';
 				fp = fopen(name, "r");
+            printf("STARTING UPLOAD of: %s\n", name);
 				if (fp != NULL) {
-
+                printf("fileExists!\n\n");
 				    /* 
 					 * Create first packet which
 					 * has the file name 
@@ -611,12 +757,12 @@ while(1) {
 					fclose(fp);
 					free(new_job);
 
-				} else {  
-
+/*				} else {  
+               printf("HOST.c: DIR Not Valid\n\n");
 					free(new_job);
 
 				}
-
+*/
 			}
 			
 			break;
@@ -733,10 +879,217 @@ while(1) {
 			strcpy(new_job2->fname_upload, new_job->packet->payload);
 			new_job2->file_upload_dst = new_job->packet->src;
 			job_q_add(&job_q, new_job2);
-			//printf("\n\ndownload received\n\n");
+			printf("\n\ndownload received\n\n");
 
 			break;
 
+      case JOB_REGISTER_NAME_SEND:
+               //printf("%s\n", name);
+               n = sprintf(name, new_job->domNameUp);
+               
+               new_packet = (struct packet *)
+                  malloc(sizeof(struct packet));
+               new_packet->dst
+                  = new_job->file_upload_dst;
+               //printf("Dest: %d\n", new_packet->dst);
+               new_packet->src = (char) host_id;
+               new_packet->type
+                  = PKT_DNS_UPLOAD_END;
+               for (i=0; new_job->domNameUp[i]!= '\0'; i++) {
+                  new_packet->payload[i] =
+                     new_job->domNameUp[i];
+                //  printf("%c", new_job->domNameUp[i]);
+               }
+               //printf("\n");
+               new_packet->length = i;
+               
+               new_job2 = (struct host_job *) malloc(sizeof(struct host_job));
+               new_job2->type = JOB_SEND_PKT_ALL_PORTS;
+               new_job2->packet = new_packet;
+               job_q_add(&job_q, new_job2);
+           //    printf("prepping packet to SEND registration\n\n");
+               free(new_job);
+      break;
+
+      case JOB_REQUEST_ID_SEND:
+         printf("REQUEST ID SENT\n\n");
+         n = sprintf(name, new_job->domNameUp);
+
+         new_packet = (struct packet *)
+            malloc(sizeof(struct packet));
+         new_packet->dst
+            = new_job->file_upload_dst;
+         //printf("Dest: %d\n", new_packet->dst);
+         new_packet->src = (char) host_id;
+         new_packet->type
+            = PKT_DNS_REQUEST_START;
+         for (i=0; new_job->domNameUp[i]!= '\0'; i++) {
+            new_packet->payload[i] =
+               new_job->domNameUp[i];
+           // printf("%c", new_job->domNameUp[i]);
+         }
+        // printf("\n");
+         new_packet->length = i;
+
+         new_job2 = (struct host_job *) malloc(sizeof(struct host_job));
+         new_job2->type = JOB_SEND_PKT_ALL_PORTS;
+         new_job2->packet = new_packet;
+         job_q_add(&job_q, new_job2);
+         //printf("prepping packet to SEND request\n\n");
+         free(new_job);
+      break;
+           case JOB_REGISTER_NAME_REC:
+               /* Initialize the file buffer data structure */
+               //file_buf_init(&f_buf_upload);
+
+
+               //file_buf_add(&f_buf_upload,
+               //new_job->packet->payload,
+               //new_job->packet->length);
+               //printf("%s\n\n", new_job->packet->payload);
+               //printf("HIT");
+               int j = new_job->packet->src;
+               //free(new_job->packet);
+               //free(new_job);
+               char newDName[50];
+               //n = sprintf(name, newDName);
+               //input into table
+               strcpy(newDName,new_job->packet->payload);
+               AssignToTable(j,newDName);
+               free(new_job->packet);
+               free(new_job);
+               //AssignToTable(j,newDName);
+               printf("REGISTERING NAME from %d\n\n", j);
+      break;
+
+      case JOB_REQUEST_ID_REC:
+               //printf("ID REQUEST FOUND! Requesting: %s\n\n", new_job->packet->payload);
+               int k = -1;
+               const char s[] = " ";
+               //int i = strlen(new_job->packet->payload);
+               char * y;
+               char * z;
+               y = new_job->packet->payload;
+               strtok(y, s);
+               z = strtok(NULL, s);
+               //printf("Extra command %s, %s", y, z);
+               int x = new_job->packet->src;
+               k = RequestID(y);
+               if(k == -1){ 
+                  printf("Domain Name: %s not in system\n\n", y); 
+                  free(new_job->packet);
+                  free(new_job);
+                  break;
+               }
+               else
+               {
+                  char newSrc[4];
+                  sprintf(newSrc, "%d", x);
+                  printf("\n\n Domain Name Found! Returning id: %d From: %d \n\n", k, host_id);
+                  char info[4];
+                  sprintf(info, "%d", k);
+                 // printf("info is: %s\n", info);
+                 
+
+                  //prep new packet`
+                  new_packet = (struct packet *) malloc(sizeof(struct packet));
+                  new_packet->dst = (char)x;
+
+
+                  //printf("\n\n Domain Name Found! Returning id: %c From: %d\n\n", new_packet->dst, host_id);
+
+                  new_packet->src = (char) host_id;
+                  new_packet->type = PKT_DNS_REQUEST_END;
+                  for (i=0; info[i]!= '\0'; i++) {
+                     new_packet->payload[i] = info[i];
+                     //if (info[i+1] == '\0')
+                        //new_packet->payload[i] = z[0];
+                     //printf("%c", new_packet->payload[i]);
+                  }
+                  if (z!=NULL){
+                     new_packet->payload[i] = ' ';
+                     new_packet->payload[i+1] = z[0];
+                     printf("%s", new_packet->payload);
+                     new_packet->length = i+2;
+                  }else{
+                     printf("No extra command %s", new_packet->payload);
+                     new_packet->length = i;
+                  }
+                  printf("\n\n");
+                  new_job2 = (struct host_job *) malloc(sizeof(struct host_job));
+                  new_job2->type = JOB_SEND_PKT_ALL_PORTS;
+                  new_job2->packet = new_packet;
+                  job_q_add(&job_q, new_job2);
+                  //printf("Sent Packets on all ports cp\n\n");
+               }
+               free(new_job->packet);
+               free(new_job);
+               //printf("cp FINAL\n\n");
+      break;
+
+      case JOB_REQUEST_ID_REC_END:
+               //printf("HOST %d recieved request return packet!\n\nRequested ID Given Domain Name is: %s\n\n", host_id, new_job->packet->payload[0]);
+               //printf("Domain Name Request Responce! ID: %s\n\n", new_job->packet->payload);   
+               char command = ' ';
+               int requestedID = atoi(new_job->packet->payload);
+               if(strlen(new_job->packet->payload) > 2){
+                  printf("RequestedID is %d and new command is %c\n\n", requestedID,new_job->packet->payload[2]);
+                  command = new_job->packet->payload[2];
+               }
+               free(new_job->packet);
+               free(new_job);
+               
+               if(command == 'p'){
+                  //char str[2];
+                  //sprintf(str, "%d", requestedID);
+                  //printf("HIT\n\n");
+                  //printf("(char) requestedId: %c\n\n", str[0]);
+                  new_packet = (struct packet *)
+                  malloc(sizeof(struct packet));
+                  new_packet->src = (char) host_id;
+                  new_packet->dst = (char) requestedID;
+                  new_packet->type = (char) PKT_PING_REQ;
+                  new_packet->length = 0;
+                  new_job = (struct host_job *)
+                        malloc(sizeof(struct host_job));
+                  new_job->packet = new_packet;
+                  new_job->type = JOB_SEND_PKT_ALL_PORTS;
+                  job_q_add(&job_q, new_job);
+
+                  new_job2 = (struct host_job *)
+                        malloc(sizeof(struct host_job));
+                  ping_reply_received = 0;
+                  new_job2->type = JOB_PING_WAIT_FOR_REPLY;
+                  new_job2->ping_timer = 10;
+                  job_q_add(&job_q, new_job2);
+               }else if (command == 'u'){
+                  
+                  new_job = (struct host_job *)
+                  malloc(sizeof(struct host_job));
+                  new_job->type = JOB_FILE_UPLOAD_SEND;
+                  new_job->file_upload_dst = (char) requestedID;
+                  printf("Upload requested ID is: %d. FileName is: %s\n", requestedID, dat.heldFileName);
+                  for (i=0; dat.heldFileName[i] != '\0'; i++) {
+                     new_job->fname_upload[i] = dat.heldFileName[i];
+                  }
+                  new_job->fname_upload[i] = '\0';
+                  job_q_add(&job_q, new_job);
+               }else if (command == 'd'){
+                  new_job = (struct host_job *)
+                  malloc(sizeof(struct host_job));
+                  new_job->type = JOB_FILE_DOWNLOAD_SEND;
+                  new_job->file_download_dst = (char) requestedID;
+                  printf("Download requested ID is: %d. FileName is: %s\n", requestedID, dat.heldFileName);
+                  for (i=0; dat.heldFileName[i] != '\0'; i++) {
+                     new_job->fname_download[i] = dat.heldFileName[i];
+                  }
+                  new_job->fname_download[i] = '\0';
+                  job_q_add(&job_q, new_job);
+               }
+
+
+               //printf("HIT\n\n");
+      break;
       }
 	}
 
@@ -747,3 +1100,5 @@ while(1) {
 } /* End of while loop */
 
 }
+
+

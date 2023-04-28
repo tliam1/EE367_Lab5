@@ -47,6 +47,8 @@ while(1) {
 	printf("   (p) Ping a host\n");
 	printf("   (u) Upload a file to a host\n");
 	printf("   (d) Download a file from a host\n");
+   printf("   (a) Add domain name to naming_table\n");
+   printf("   (r) request ID from naming_table\n");
 	printf("   (q) Quit\n");
 	printf("   Enter Command: ");
 	do {
@@ -63,6 +65,8 @@ while(1) {
 		case 'p':
 		case 'u':
 		case 'd':
+      case 'a':
+      case 'r':
 		case 'q': return cmd;
 		default: 
 			printf("Invalid: you entered %c\n\n", cmd);
@@ -167,11 +171,14 @@ char msg[MAN_MSG_LENGTH];
 char reply[MAN_MSG_LENGTH];
 int host_to_ping;
 int n;
+char name[NAME_LENGTH];
 
-printf("Enter id of host to ping: ");
+printf("Enter Host Name: ");
+scanf("%s",name);
+printf("Enter special host # (100): ");
 scanf("%d", &host_to_ping);
-n = sprintf(msg, "p %d", host_to_ping);
-
+printf("\n");
+n = sprintf(msg, "p %d %s", host_to_ping, name);
 write(curr_host->send_fd, msg, n);
 
 n = 0;
@@ -203,14 +210,17 @@ int n;
 int host_id;
 char name[NAME_LENGTH];
 char msg[NAME_LENGTH];
+char dnsName[NAME_LENGTH];
 
 printf("Enter file name to upload: ");
 scanf("%s", name);
-printf("Enter host id of destination:  ");
+printf("Enter the Host's Domain Name: ");
+scanf("%s", dnsName);
+printf("Enter Special Host ID(100):  ");
 scanf("%d", &host_id);
 printf("\n");
 
-n = sprintf(msg, "u %d %s", host_id, name);
+n = sprintf(msg, "u %d %s %s", host_id, name, dnsName);
 write(curr_host->send_fd, msg, n);
 usleep(TENMILLISEC);
 }
@@ -221,18 +231,63 @@ int file_download(struct man_port_at_man *curr_host)
    int host_id;
    char name[NAME_LENGTH];
    char msg[NAME_LENGTH];
-
+   char dnsName[NAME_LENGTH];
 
    printf("Enter file name to download: ");
    scanf("%s", name);
-   printf("Enter host id that has the file: ");
+   printf("Enter host name that has the file: ");
+   scanf("%s", dnsName);
+   printf("Enter the special host ID: ");
    scanf("%d", &host_id);
    printf("\n");
 
-   n = sprintf(msg, "d %d %s", host_id, name);
+   n = sprintf(msg, "d %d %s %s", host_id, name, dnsName);
    write(curr_host->send_fd, msg, n);
    usleep(TENMILLISEC);
 
+}
+
+
+int Register_DomainName(struct man_port_at_man *curr_host)
+{
+   int n;
+   int host_id;
+   char name[NAME_LENGTH];
+   char msg[NAME_LENGTH];
+
+
+   printf("Enter Domain Name to add: ");
+   scanf("%s", name);
+   printf("Enter Special host id: ");
+   scanf("%d", &host_id);
+   printf("\n");
+
+   n = sprintf(msg, "a %d %s", host_id, name);
+   write(curr_host->send_fd, msg, n);
+   printf("Registered Host name: %s\n", name);
+   usleep(TENMILLISEC);
+}
+
+
+
+int Request_DomainName(struct man_port_at_man *curr_host)
+{
+   int n;
+   int host_id;
+   char name[NAME_LENGTH];
+   char msg[NAME_LENGTH];
+
+
+   printf("Enter Domain Name of Host: ");
+   scanf("%s", name);
+   printf("Enter Special host id: ");
+   scanf("%d", &host_id);
+   printf("\n");
+
+   n = sprintf(msg, "r %d %s", host_id, name);
+   write(curr_host->send_fd, msg, n);
+   printf("Registered Host name: %s\n", name);
+   usleep(TENMILLISEC);
 }
 
 
@@ -280,6 +335,12 @@ while(1) {
 		case 'd': /* Download a file from a host */
 			file_download(curr_host);
 			break;
+      case 'a':
+         Register_DomainName(curr_host);
+         break;
+      case 'r':
+         Request_DomainName(curr_host);
+         break;
 		case 'q':  /* Quit */
 			return;
 		default: 

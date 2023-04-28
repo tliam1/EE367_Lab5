@@ -51,13 +51,14 @@ int i;
 if (port->type == PIPE) {
 	n = read(port->pipe_recv_fd, msg, PAYLOAD_MAX+4);
 	if (n>0) {
+      //printf("GOT PACKET");
 		p->src = (char) msg[0];
 		p->dst = (char) msg[1];
 		p->type = (char) msg[2];
 		p->length = (int) msg[3];
 		for (i=0; i<p->length; i++) {
 			p->payload[i] = msg[i+4];
-		}
+      }
 	}
 }
 

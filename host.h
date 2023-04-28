@@ -1,6 +1,10 @@
 /* 
  * host.h 
  */
+#define MAXSTORAGE 256
+#define MAXLENGTH 50
+
+
 
 enum host_job_type {
 	JOB_SEND_PKT_ALL_PORTS,
@@ -11,7 +15,12 @@ enum host_job_type {
    JOB_FILE_DOWNLOAD_SEND,
    JOB_FILE_DOWNLOAD_RECV,
 	JOB_FILE_UPLOAD_RECV_START,
-	JOB_FILE_UPLOAD_RECV_END
+	JOB_FILE_UPLOAD_RECV_END,
+   JOB_REGISTER_NAME_SEND,
+   JOB_REQUEST_ID_SEND,
+   JOB_REGISTER_NAME_REC,
+   JOB_REQUEST_ID_REC,
+   JOB_REQUEST_ID_REC_END
 };
 
 struct host_job {
@@ -24,6 +33,8 @@ struct host_job {
 	int ping_timer;
 	int file_upload_dst;
    int file_download_dst;
+   char domNameUp[50];
+   char domNameDown[50];
 	struct host_job *next;
 };
 
@@ -33,6 +44,11 @@ struct job_queue {
 	struct host_job *tail;
 	int occ;
 };
+
+
+
+
+//struct DNS_Table Naming_Table[MAXSTORAGE];
 
 void host_main(int host_id);
 int job_q_num(struct job_queue *j_q);
