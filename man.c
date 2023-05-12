@@ -175,9 +175,27 @@ char name[NAME_LENGTH];
 
 printf("Enter Host Name: ");
 scanf("%s",name);
-printf("Enter special host # (100): ");
-scanf("%d", &host_to_ping);
-printf("\n");
+
+//check if first index of strin is an in
+/*int isDigit;
+int j = 0;
+while(j<strlen(name) && isDigit == 0){
+  if(name[j] > 57 && name[j] < 48)
+    isDigit = 0;
+  else
+    isDigit = 1;
+  j++;
+}
+*/
+
+//int id = -1;
+//if (isDigit == 1)
+  //  id = atoi(name);
+
+   printf("Enter special host # (100): ");
+   scanf("%d", &host_to_ping);
+   printf("\n");
+
 n = sprintf(msg, "p %d %s", host_to_ping, name);
 write(curr_host->send_fd, msg, n);
 

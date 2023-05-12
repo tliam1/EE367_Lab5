@@ -349,24 +349,50 @@ while(1) {
 			case 'p': // Sending ping request
 				// Create new ping request packet
             sscanf(man_msg, "%d %s", &dst, name);
-            new_job = (struct host_job *)
-                  malloc(sizeof(struct host_job));
-            new_job->type = JOB_REQUEST_ID_SEND;
-            new_job->file_upload_dst = 100;
-            for (i=0; name[i] != '\0'; i++) {
-               new_job->domNameUp[i] = name[i];
-            }
-            new_job->domNameUp[i] = ' ';
-            new_job->domNameUp[i+1] = 'p';
-            //printf("Host: New_job->domNameUp: %s\n", new_job->domNameUp);
-            new_job->domNameUp[i+2] = '\0';
-            job_q_add(&job_q, new_job);
 
+            //check if first index of strin is an in
+            int isDigit=0;
+            //int j = 0;
+            //while(j<strlen(name) && isDigit == 0){
+            //
+
+
+            printf("name[0] is %c,  %d",name[0], (int)name[0]);
+               if((int)name[0] > 57 || (int)name[0] < 48)
+                  isDigit = 0;
+               else{
+                  isDigit = 1;
+                  //break;
+               }
+                  //j++;
+            //}
+
+
+            int id = -1;
+            if (isDigit == 1){
+               id = atoi(name);
+               printf("User Entered a digit");
+            }
+            printf("ID is: %d,  name is %s", id, name);
+               if(id == -1){
+                  new_job = (struct host_job *)
+                  malloc(sizeof(struct host_job));
+               new_job->type = JOB_REQUEST_ID_SEND;
+               new_job->file_upload_dst = 100;
+               for (i=0; name[i] != '\0'; i++) {
+                  new_job->domNameUp[i] = name[i];
+               }
+               new_job->domNameUp[i] = ' ';
+               new_job->domNameUp[i+1] = 'p';
+               //printf("Host: New_job->domNameUp: %s\n", new_job->domNameUp);
+               new_job->domNameUp[i+2] = '\0';
+               job_q_add(&job_q, new_job);
+            }else{
 
 				//sscanf(man_msg, "%d", &dst);
 
             //printf("string literal of dst %s\n", (char)dst);
-/*            dst = requestedID;
+            dst = id;
             printf("Requested ID is %d\n", dst);
 				new_packet = (struct packet *) 
 						malloc(sizeof(struct packet));	
@@ -386,11 +412,35 @@ while(1) {
 				new_job2->type = JOB_PING_WAIT_FOR_REPLY;
 				new_job2->ping_timer = 10;
 				job_q_add(&job_q, new_job2);
-  */          
+            
+            }
 				break;
 
 			case 'u': /* Upload a file to a host */
 				sscanf(man_msg, "%d %s %s", &dst, dat.heldFileName, name);
+
+
+            //check if first index of strin is an in
+            isDigit=0;
+            //int j = 0;
+            //while(j<strlen(name) && isDigit == 0){
+               if((int)name[0] > 57 || (int)name[0] < 48)
+                  isDigit = 0;
+               else{
+                  isDigit = 1;
+                  //break;
+               }
+                  //j++;
+            //}
+
+
+            id = -1;
+            if (isDigit == 1){
+               id = atoi(name);
+               printf("User Entered a digit");
+            }
+
+            if(isDigit==0){
             new_job = (struct host_job *)
                   malloc(sizeof(struct host_job));
             new_job->type = JOB_REQUEST_ID_SEND;
@@ -403,7 +453,17 @@ while(1) {
             //printf("Host: New_job->domNameUp: %s\n", new_job->domNameUp);
             new_job->domNameUp[i+2] = '\0';
             job_q_add(&job_q, new_job);
-
+            }else{
+               new_job = (struct host_job *) 
+                  malloc(sizeof(struct host_job));
+            new_job->type = JOB_FILE_UPLOAD_SEND;
+            new_job->file_upload_dst = dst;  
+            for (i=0; name[i] != '\0'; i++) {
+               new_job->fname_upload[i] = name[i];
+            }
+            new_job->fname_upload[i] = '\0';
+            job_q_add(&job_q, new_job);
+            }
 
 
 
@@ -424,6 +484,28 @@ while(1) {
          case 'd': /* Dowload a file to a specified host */
 //				printf("Download started\n");
 			   sscanf(man_msg, "%d %s %s", &dst, dat.heldFileName, name);
+            
+            //check if first index of strin is an in
+            isDigit=0;
+            //int j = 0;
+            //while(j<strlen(name) && isDigit == 0){
+               if((int)name[0] > 57 || (int)name[0] < 48)
+                  isDigit = 0;
+               else{
+                  isDigit = 1;
+                  //break;
+               }
+                  //j++;
+            //}
+
+
+            id = -1;
+            if (isDigit == 1){
+               id = atoi(name);
+               printf("User Entered a digit");
+            }
+
+            if(isDigit==0){
             new_job = (struct host_job *)
                   malloc(sizeof(struct host_job));
             new_job->type = JOB_REQUEST_ID_SEND;
@@ -436,15 +518,7 @@ while(1) {
             //printf("Host: New_job->domNameUp: %s\n", new_job->domNameUp);
             new_job->domNameUp[i+2] = '\0';
             job_q_add(&job_q, new_job);
-
-
-
-
-
-
-
-
-            /*sscanf(man_msg, "%d %s", &dst, name);
+            }else{
 				new_job = (struct host_job *) 
 						malloc(sizeof(struct host_job));
 				new_job->type = JOB_FILE_UPLOAD_SEND;
@@ -454,7 +528,7 @@ while(1) {
 				}
 				new_job->fname_download[i] = '\0';
 				job_q_add(&job_q, new_job);
-				*/	
+            }
 				break;
          case 'a': 
             //send alias to DNS node
@@ -976,9 +1050,10 @@ while(1) {
                int x = new_job->packet->src;
                k = RequestID(y);
                if(k == -1){ 
-                  printf("Domain Name: %s not in system\n\n", y); 
+                  printf("\n\nDomain Name: %s not in system\n\n", y);
                   free(new_job->packet);
                   free(new_job);
+                  printf("Packets freed\n\n");
                   break;
                }
                else
@@ -1022,15 +1097,18 @@ while(1) {
                   job_q_add(&job_q, new_job2);
                   //printf("Sent Packets on all ports cp\n\n");
                }
+               printf("PREFREEING\n\n");
                free(new_job->packet);
                free(new_job);
-               //printf("cp FINAL\n\n");
+               printf("cp FINAL\n\n");
       break;
 
       case JOB_REQUEST_ID_REC_END:
                //printf("HOST %d recieved request return packet!\n\nRequested ID Given Domain Name is: %s\n\n", host_id, new_job->packet->payload[0]);
                //printf("Domain Name Request Responce! ID: %s\n\n", new_job->packet->payload);   
                char command = ' ';
+               
+               printf("NEW RECIEVED PACKET\n\n");
                int requestedID = atoi(new_job->packet->payload);
                if(strlen(new_job->packet->payload) > 2){
                   printf("RequestedID is %d and new command is %c\n\n", requestedID,new_job->packet->payload[2]);
@@ -1085,9 +1163,10 @@ while(1) {
                   }
                   new_job->fname_download[i] = '\0';
                   job_q_add(&job_q, new_job);
+               }else if (command == 'l'){
+                  printf("No Name in system\n");
+                  
                }
-
-
                //printf("HIT\n\n");
       break;
       }
